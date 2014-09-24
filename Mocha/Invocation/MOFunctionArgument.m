@@ -919,6 +919,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
                 case _C_ULNG_LNG:   number = *(unsigned long long *)ptr; break;
                 case _C_FLT:        number = *(float *)ptr; break;
                 case _C_DBL:        number = *(double *)ptr; break;
+                default:            number = 0.0;
             }
             *value = JSValueMakeNumber(ctx, number);
             return YES;
