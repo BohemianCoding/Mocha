@@ -657,12 +657,12 @@ static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef 
     if ([propertyName isEqualToString:@"Object"]) {
         return true;
     }
-    else if ([propertyName isEqualToString:@"String"]) {
-        return true;
-    }
-    else if ([propertyName isEqualToString:@"Array"]) {
-        return true;
-    }
+//    else if ([propertyName isEqualToString:@"String"]) {
+//        return true;
+//    }
+//    else if ([propertyName isEqualToString:@"Array"]) {
+//        return true;
+//    }
     else if ([propertyName isEqualToString:@"RegExp"]) {
         return true;
     }
@@ -733,12 +733,12 @@ JSValueRef Mocha_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef p
     if ([propertyName isEqualToString:@"Object"]) {
         return [runtime JSValueForObject:[NSObject class] inContext:ctx];
     }
-    else if ([propertyName isEqualToString:@"String"]) {
-        return [runtime JSValueForObject:[NSString class] inContext:ctx];
-    }
-    else if ([propertyName isEqualToString:@"Array"]) {
-        return [runtime JSValueForObject:[NSArray class] inContext:ctx];
-    }
+//    else if ([propertyName isEqualToString:@"String"]) {
+//        return [runtime JSValueForObject:[NSString class] inContext:ctx];
+//    }
+//    else if ([propertyName isEqualToString:@"Array"]) {
+//        return [runtime JSValueForObject:[NSArray class] inContext:ctx];
+//    }
     else if ([propertyName isEqualToString:@"RegExp"]) {
         return [runtime JSValueForObject:[NSRegularExpression class] inContext:ctx];
     }
