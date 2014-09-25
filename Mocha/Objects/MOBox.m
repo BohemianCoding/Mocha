@@ -11,4 +11,7 @@
 
 @implementation MOBox
 
+- (void)dealloc {
+    NSLog(@"I'm off");
+}
 @end

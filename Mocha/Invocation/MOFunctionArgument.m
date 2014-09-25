@@ -52,6 +52,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 
 @end
 
+extern BOOL logging;
 
 @implementation MOFunctionArgument {
     NSString *_typeEncoding;
@@ -62,20 +63,24 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (id)init {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [self initWithBaseTypeEncoding:_C_ID];
 }
 
 - (id)initWithBaseTypeEncoding:(char)baseTypeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     unichar character = (unichar)baseTypeEncoding;
     NSString *typeEncoding = [NSString stringWithCharacters:&character length:1];
     return [self initWithTypeEncoding:typeEncoding];
 }
 
 - (id)initWithTypeEncoding:(NSString *)typeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [self initWithTypeEncoding:typeEncoding storage:NULL];
 }
 
 - (id)initWithTypeEncoding:(NSString *)typeEncoding storage:(void **)storagePtr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     self = [super init];
     if (self) {
         [self setTypeEncoding:typeEncoding storage:storagePtr];
@@ -84,6 +89,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (void)dealloc {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (_storage != NULL && _ownsStorage) {
         free(_storage);
     }
@@ -101,6 +107,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (NSString *)description {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [NSString stringWithFormat:@"<%@: %p : typeEncoding=%@, returnValue=%@, storage=%p>", [self class], self, _typeEncoding, (_returnValue ? @"YES" : @"NO"), _storage];
 }
 
@@ -109,14 +116,17 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 #pragma mark Accessors
 
 - (NSString *)typeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return _typeEncoding;
 }
 
 - (void)setTypeEncoding:(NSString *)typeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     [self setTypeEncoding:typeEncoding storage:NULL];
 }
 
 - (void)setTypeEncoding:(NSString *)typeEncoding storage:(void **)storagePtr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (_ownsStorage && _storage != NULL) {
         free(_storage);
     }
@@ -199,6 +209,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (ffi_type *)ffiType {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (_typeEncoding == nil) {
         return NULL;
     }
@@ -212,6 +223,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (size_t)size {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (_baseTypeEncoding == _C_STRUCT_B) {
         return [MOFunctionArgument sizeOfStructureTypeEncoding:_typeEncoding];
     }
@@ -223,6 +235,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (NSString *)typeDescription {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [MOFunctionArgument descriptionOfTypeEncoding:_baseTypeEncoding fullTypeEncoding:_typeEncoding];
 }
 
@@ -231,6 +244,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 #pragma mark Storage
 
 - (void **)storage {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (self.pointer != nil) {
         return &_storage;
     }
@@ -238,6 +252,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (void)allocateStorage {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (!_typeEncoding) {
         @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"No type encoding set in %@", self] userInfo:nil];
     }
@@ -276,6 +291,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 
 // This destroys the original pointer value by modifying it in place : maybe change to returning the new address ?
 + (void)alignPtr:(void **)ptr accordingToEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     size_t alignOnSize = 0;
     BOOL success = [MOFunctionArgument getAlignment:&alignOnSize ofTypeEncoding:encoding];
     
@@ -294,6 +310,7 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 
 // This destroys the original pointer value by modifying it in place : maybe change to returning the new address ?
 + (void)advancePtr:(void **)ptr accordingToEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     long address = (long)*ptr;
     size_t size = 0;
     BOOL success = [MOFunctionArgument getSize:&size ofTypeEncoding:encoding];
@@ -311,10 +328,12 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 #pragma mark JSValue Conversion
 
 - (JSValueRef)getValueAsJSValueInContext:(JSContextRef)ctx {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [self getValueAsJSValueInContext:ctx dereference:NO];
 }
 
 - (JSValueRef)getValueAsJSValueInContext:(JSContextRef)ctx dereference:(BOOL)dereference {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSAssert(_storage != NULL, @"Cannot get value with NULL storage pointer");
     
     JSValueRef value = NULL;
@@ -340,10 +359,12 @@ NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exc
 }
 
 - (void)setValueAsJSValue:(JSValueRef)value context:(JSContextRef)ctx {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     [self setValueAsJSValue:value context:ctx dereference:NO];
 }
 
 - (void)setValueAsJSValue:(JSValueRef)value context:(JSContextRef)ctx dereference:(BOOL)dereference {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSAssert(_storage != NULL, @"Cannot set value with NULL storage pointer");
     
     if (value != NULL && !JSValueIsNull(ctx, value)) {
@@ -389,6 +410,7 @@ typedef struct { char a; double b; } struct_C_DBL;
 typedef struct { char a; BOOL b; } struct_C_BOOL;
 
 + (BOOL)getAlignment:(size_t *)alignmentPtr ofTypeEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     BOOL success = YES;
     size_t alignment = 0;
     switch (encoding) {
@@ -419,6 +441,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (BOOL)getSize:(size_t *)sizePtr ofTypeEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     BOOL success = YES;
     size_t size = 0;
     switch (encoding) {
@@ -450,6 +473,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (ffi_type *)ffiTypeForTypeEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     switch (encoding) {
         case _C_ID:
         case _C_CLASS:
@@ -475,6 +499,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSString *)descriptionOfTypeEncoding:(char)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     switch (encoding) {
         case _C_ID:         return @"id";
         case _C_CLASS:      return @"Class";
@@ -501,6 +526,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSString *)descriptionOfTypeEncoding:(char)typeEncoding fullTypeEncoding:(NSString *)fullTypeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     switch (typeEncoding) {
         case _C_VOID:       return @"void";
         case _C_ID:         return @"id";
@@ -538,6 +564,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
  * Return {_NSRect="origin"{_NSPoint="x"f"y"f}"size"{_NSSize="width"f"height"f}}
  */
 + (NSString *)structureNameFromStructureTypeEncoding:(NSString *)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     // Extract structure name
     // skip '{'
     char *c = (char *)[encoding UTF8String] + 1;
@@ -556,11 +583,13 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSString *)structureFullTypeEncodingFromStructureTypeEncoding:(NSString *)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSString *structureName = [MOFunctionArgument structureNameFromStructureTypeEncoding:encoding];
     return [self structureFullTypeEncodingFromStructureName:structureName];
 }
 
 + (NSString *)structureFullTypeEncodingFromStructureName:(NSString *)structureName {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     // Fetch structure type encoding from BridgeSupport
     id symbol = [[MOBridgeSupportController sharedController] symbolWithName:structureName type:[MOBridgeSupportStruct class]];
     
@@ -582,6 +611,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSString *)structureTypeEncodingDescription:(NSString *)structureTypeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSString *fullStructureTypeEncoding = [self structureFullTypeEncodingFromStructureTypeEncoding:structureTypeEncoding];
     if (!fullStructureTypeEncoding) {
         return [NSString stringWithFormat:@"(Could not describe struct %@)", structureTypeEncoding];
@@ -598,6 +628,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 // Given a structure encoding string, produce a human readable format
 //
 + (NSInteger)structureTypeEncodingDescription:(NSString *)structureTypeEncoding inString:(NSMutableString **)str {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     char *c = (char*)[structureTypeEncoding UTF8String];
     char *c0 = c;
     
@@ -667,6 +698,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (size_t)sizeOfStructureTypeEncoding:(NSString *)encoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSArray *types = [self typeEncodingsFromStructureTypeEncoding:encoding];
     size_t computedSize = 0;
     void ** ptr = (void **)&computedSize;
@@ -681,10 +713,12 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSArray *)typeEncodingsFromStructureTypeEncoding:(NSString*)structureTypeEncoding {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [self typeEncodingsFromStructureTypeEncoding:structureTypeEncoding parsedCount:NULL];
 }
 
 + (NSArray *)typeEncodingsFromStructureTypeEncoding:(NSString *)structureTypeEncoding parsedCount:(NSInteger *)count {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSMutableArray *types = [NSMutableArray array];
     char *c = (char *)[structureTypeEncoding UTF8String];
     char *c0 = c;
@@ -764,6 +798,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 #pragma mark JSValue Type Conversion
 
 + (BOOL)fromJSValue:(JSValueRef)value inContext:(JSContextRef)ctx typeEncoding:(char)typeEncoding fullTypeEncoding:(NSString *)fullTypeEncoding storage:(void *)ptr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (!typeEncoding) {
         return NO;
     }
@@ -871,6 +906,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (BOOL)toJSValue:(JSValueRef *)value inContext:(JSContextRef)ctx typeEncoding:(char)typeEncoding fullTypeEncoding:(NSString *)fullTypeEncoding storage:(void *)ptr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (!typeEncoding) {
         return NO;
     }
@@ -969,6 +1005,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSInteger)structureFromJSObject:(JSObjectRef)object inContext:(JSContextRef)ctx inParentJSValueRef:(JSValueRef)parentValue cString:(char *)c storage:(void **)ptr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     id structureName = [MOFunctionArgument structureNameFromStructureTypeEncoding:[NSString stringWithUTF8String:c]];
     char *c0 = c;
     
@@ -1037,10 +1074,12 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 }
 
 + (NSInteger)structureToJSValue:(JSValueRef *)value inContext:(JSContextRef)ctx cString:(char *)c storage:(void **)ptr {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     return [self structureToJSValue:value inContext:ctx cString:c storage:ptr initialValues:nil initialValueCount:0 convertedValueCount:nil];
 }
 
 + (NSInteger)structureToJSValue:(JSValueRef *)value inContext:(JSContextRef)ctx cString:(char *)c storage:(void **)ptr initialValues:(JSValueRef *)initialValues initialValueCount:(NSInteger)initialValueCount convertedValueCount:(NSInteger *)convertedValueCount {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
     NSString *structureName = [MOFunctionArgument structureNameFromStructureTypeEncoding:[NSString stringWithUTF8String:c]];
@@ -1151,6 +1190,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 #pragma mark Type Signatures
 
 + (NSArray *)argumentsFromTypeSignature:(NSString *)typeSignature {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     NSMutableArray *argumentEncodings = [NSMutableArray array];
     char *argsParser = (char *)[typeSignature UTF8String];
     
@@ -1247,6 +1287,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
 
 
 NSString * MOJSValueToString(JSContextRef ctx, JSValueRef value, JSValueRef *exception) {
+    if (logging) NSLog(@"%s", __FUNCTION__);
     if (value == NULL) {
         return nil;
     }

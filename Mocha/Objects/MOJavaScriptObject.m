@@ -11,6 +11,7 @@
 
 #import "MORuntime_Private.h"
 
+extern BOOL logging;
 
 @implementation MOJavaScriptObject {
     JSObjectRef _JSObject;
@@ -37,10 +38,16 @@
 }
 
 - (JSObjectRef)JSObject {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     return _JSObject;
 }
 
 - (void)setJSObject:(JSObjectRef)JSObject JSContext:(JSContextRef)JSContext {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     if (_JSObject != NULL) {
         JSValueUnprotect(_JSContext, _JSObject);
     }
@@ -52,6 +59,9 @@
 }
 
 - (MOJavaScriptObject *)prototype {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     JSValueRef value = JSObjectGetPrototype(_JSContext, _JSObject);
     id object = [runtime objectForJSValue:value inContext:_JSContext];
@@ -59,6 +69,9 @@
 }
 
 - (NSArray *)propertyNames {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     JSPropertyNameArrayRef propertyNamesRef = JSObjectCopyPropertyNames(_JSContext, _JSObject);
     size_t count = JSPropertyNameArrayGetCount(propertyNamesRef);
     
@@ -75,6 +88,9 @@
 }
 
 - (BOOL)containsPropertyWithName:(NSString *)propertyName {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     JSStringRef nameRef = JSStringCreateWithCFString((__bridge CFStringRef)propertyName);
     bool value = JSObjectHasProperty(_JSContext, _JSObject, nameRef);
     JSStringRelease(nameRef);
@@ -82,6 +98,9 @@
 }
 
 - (id)objectForPropertyName:(NSString *)propertyName {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     
     JSStringRef nameRef = JSStringCreateWithCFString((__bridge CFStringRef)propertyName);
@@ -101,6 +120,9 @@
 }
 
 - (void)setObject:(id)object forPropertyName:(NSString *)propertyName {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     
     JSStringRef nameRef = JSStringCreateWithCFString((__bridge CFStringRef)propertyName);
@@ -115,6 +137,9 @@
 }
 
 - (void)removeObjectForPropertyName:(NSString *)propertyName {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     
     JSStringRef nameRef = JSStringCreateWithCFString((__bridge CFStringRef)propertyName);
@@ -128,6 +153,9 @@
 }
 
 - (id)objectAtPropertyIndex:(NSUInteger)propertyIdx {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     
     JSValueRef exceptionRef = NULL;
@@ -144,6 +172,9 @@
 }
 
 - (void)setObject:(id)object atPropertyIndex:(NSUInteger)propertyIdx {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     
     JSValueRef exceptionRef = NULL;
@@ -156,6 +187,9 @@
 }
 
 - (id)constructWithArguments:(NSArray *)arguments {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     size_t argumentCount = (size_t)[arguments count];
     
@@ -185,6 +219,9 @@
 }
 
 - (id)callWithArguments:(NSArray *)arguments {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:_JSContext];
     size_t argumentCount = (size_t)[arguments count];
     

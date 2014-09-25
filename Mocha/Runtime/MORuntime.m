@@ -30,6 +30,7 @@
 #import <objc/runtime.h>
 #import <dlfcn.h>
 
+BOOL logging = NO; // TEMP
 
 // Class types
 static JSClassRef MochaClass = NULL;
@@ -177,6 +178,8 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 }
 
 - (void)dealloc {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     JSGlobalContextRelease(_ctx);
 }
 
@@ -189,6 +192,12 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 #pragma mark Object Conversion
 
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
+    static long valForObj = 0;
+    if (++valForObj == 23457) {
+        logging = YES;
+    }
+    if (logging)
+        NSLog(@"%s %ld", __FUNCTION__, valForObj);
     if (ctx == NULL) {
         ctx = _ctx;
     }
@@ -225,6 +234,10 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
             [_objectsToBoxes setObject:box forKey:object];
             
             value = jsObject;
+
+            if (logging)
+                NSLog(@"made box %@ representing %p (%@) jsobj %p", box, object, [object class], jsObject);
+
         }
     }
     
@@ -232,16 +245,24 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 }
 
 - (void)removeBoxAssociationForObject:(id)object {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     if (object != nil) {
         [_objectsToBoxes removeObjectForKey:object];
     }
 }
 
 - (id)objectForJSValue:(JSValueRef)value inContext:(JSContextRef)ctx {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     return [MORuntime objectForJSValue:value inContext:ctx];
 }
 
 + (id)objectForJSValue:(JSValueRef)value inContext:(JSContextRef)ctx {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     if (value == NULL || JSValueIsUndefined(ctx, value)) {
         return [MOUndefined undefined];
     }
@@ -645,12 +666,24 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 #pragma mark -
 #pragma mark Global Object
 
+extern void JSSynchronousGarbageCollectForDebugging(JSContextRef);
+static int gcCounter = 0;
+
 static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
+
+    if ((++gcCounter % 100000) == 0)
+        JSSynchronousGarbageCollectForDebugging(ctx);
+
     NSString *propertyName = CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+
+    if (logging)
+        NSLog(@"%s %@", __FUNCTION__, propertyName);
+
+
     if ([propertyName isEqualToString:@"__mocha__"]) {
         return NO;
     }
-    
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
     // Class overrides
@@ -722,7 +755,11 @@ static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef 
 }
 
 JSValueRef Mocha_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS, JSValueRef *exception) {
+
     NSString *propertyName = CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
+    if (logging)
+        NSLog(@"%s %@", __FUNCTION__, propertyName);
+
     if ([propertyName isEqualToString:@"__mocha__"]) {
         return NULL;
     }
@@ -748,7 +785,10 @@ JSValueRef Mocha_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef p
         // The old NeXT Object root class interferes with the JavaScript Object constructor
         Class classObject = NSClassFromString(propertyName);
         if (classObject != nil && [classObject conformsToProtocol:@protocol(NSObject)]) {
-            return [runtime JSValueForObject:classObject inContext:ctx];
+            JSValueRef value = [runtime JSValueForObject:classObject inContext:ctx];
+            if (logging)
+                NSLog(@"property %@ value %@ %p", propertyName, classObject, value);
+            return value;
         }
     }
     
@@ -859,10 +899,15 @@ JSValueRef Mocha_getProperty(JSContextRef ctx, JSObjectRef object, JSStringRef p
 #pragma mark Objects
 
 static void MOObject_initialize(JSContextRef ctx, JSObjectRef object) {
-    
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
 }
 
 static void MOObject_finalize(JSObjectRef object) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(object));
     id o = [private representedObject];
     
@@ -877,7 +922,11 @@ static bool MOObject_hasProperty(JSContextRef ctx, JSObjectRef objectJS, JSStrin
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, propertyNameJS));
     
 //    Mocha *runtime = [Mocha runtimeWithContext:ctx];
-    
+
+    static long objHasProperty = 0;
+    if (logging)
+        NSLog(@"has property %@ %ld", propertyName, objHasProperty++);
+
     id private = (__bridge id)(JSObjectGetPrivate(objectJS));
     id object = [private representedObject];
     Class objectClass = [object class];
@@ -967,9 +1016,13 @@ static bool MOObject_hasProperty(JSContextRef ctx, JSObjectRef objectJS, JSStrin
     return NO;
 }
 
+
 static JSValueRef MOObject_getProperty(JSContextRef ctx, JSObjectRef objectJS, JSStringRef propertyNameJS, JSValueRef *exception) {
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, propertyNameJS));
-    
+
+    if (logging)
+        NSLog(@"get property %@", propertyName);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
     id private = (__bridge id)(JSObjectGetPrivate(objectJS));
@@ -1102,6 +1155,10 @@ static JSValueRef MOObject_getProperty(JSContextRef ctx, JSObjectRef objectJS, J
 }
 
 static bool MOObject_setProperty(JSContextRef ctx, JSObjectRef objectJS, JSStringRef propertyNameJS, JSValueRef valueJS, JSValueRef *exception) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, propertyNameJS));
     
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
@@ -1161,6 +1218,10 @@ static bool MOObject_setProperty(JSContextRef ctx, JSObjectRef objectJS, JSStrin
 }
 
 static bool MOObject_deleteProperty(JSContextRef ctx, JSObjectRef objectJS, JSStringRef propertyNameJS, JSValueRef *exception) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     NSString *propertyName = (NSString *)CFBridgingRelease(JSStringCopyCFString(NULL, propertyNameJS));
     
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
@@ -1187,6 +1248,7 @@ static bool MOObject_deleteProperty(JSContextRef ctx, JSObjectRef objectJS, JSSt
         }
     }
     @catch (NSException *e) {
+        NSLog(@"exception in %s", __FUNCTION__);
         // Catch ObjC exceptions and propogate them up as JS exceptions
         if (exception != NULL) {
             *exception = [runtime JSValueForObject:e inContext:ctx];
@@ -1197,6 +1259,10 @@ static bool MOObject_deleteProperty(JSContextRef ctx, JSObjectRef objectJS, JSSt
 }
 
 static void MOObject_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPropertyNameAccumulatorRef propertyNames) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MOBox *privateObject = (__bridge MOBox *)(JSObjectGetPrivate(object));
     
     // If we have a dictionary, add keys from allKeys
@@ -1215,6 +1281,9 @@ static void MOObject_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPr
 }
 
 static JSValueRef MOObject_convertToType(JSContextRef ctx, JSObjectRef objectJS, JSType type, JSValueRef *exception) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MOBox *box = (__bridge MOBox *)(JSObjectGetPrivate(objectJS));
     if (box != nil) {
         // Boxed object
@@ -1250,6 +1319,10 @@ static JSValueRef MOObject_convertToType(JSContextRef ctx, JSObjectRef objectJS,
 }
 
 static bool MOObject_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef *exception) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     MOBox *privateObject = (__bridge MOBox *)(JSObjectGetPrivate(constructor));
     id representedObject = [privateObject representedObject];
@@ -1272,6 +1345,7 @@ static bool MOObject_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSVa
         }
     }
     @catch (NSException *e) {
+        NSLog(@"exception in %s", __FUNCTION__);
         // Catch ObjC exceptions and propogate them up as JS exceptions
         if (exception != nil) {
             *exception = [runtime JSValueForObject:e inContext:ctx];
@@ -1282,6 +1356,10 @@ static bool MOObject_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSVa
 }
 
 static JSObjectRef MOObject_callAsConstructor(JSContextRef ctx, JSObjectRef object, size_t argumentsCount, const JSValueRef arguments[], JSValueRef *exception) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
     MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(object));
@@ -1303,6 +1381,7 @@ static JSObjectRef MOObject_callAsConstructor(JSContextRef ctx, JSObjectRef obje
             value = [runtime JSValueForObject:result inContext:ctx];
         }
         @catch (NSException *e) {
+            NSLog(@"exception in %s", __FUNCTION__);
             // Catch ObjC exceptions and propogate them up as JS exceptions
             if (exception != nil) {
                 *exception = [runtime JSValueForObject:e inContext:ctx];
@@ -1313,12 +1392,17 @@ static JSObjectRef MOObject_callAsConstructor(JSContextRef ctx, JSObjectRef obje
     }
     else {
         NSException *e = [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object cannot be called as a constructor" userInfo:nil];
+        NSLog(@"exception %@", e);
         *exception = [runtime JSValueForObject:e inContext:ctx];
         return NULL;
     }
 }
 
 static JSValueRef MOObject_callAsFunction(JSContextRef ctx, JSObjectRef functionJS, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(functionJS));
     id function = [private representedObject];
@@ -1340,6 +1424,7 @@ static JSValueRef MOObject_callAsFunction(JSContextRef ctx, JSObjectRef function
         }
         @catch (NSException *e) {
             // Catch ObjC exceptions and propogate them up as JS exceptions
+            NSLog(@"exception in %s", __FUNCTION__);
             if (exception != nil) {
                 *exception = [runtime JSValueForObject:e inContext:ctx];
             }
@@ -1355,12 +1440,17 @@ static JSValueRef MOObject_callAsFunction(JSContextRef ctx, JSObjectRef function
     }
     else {
         NSException *e = [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object cannot be called as a function" userInfo:nil];
+        NSLog(@"exception %@ for %@", e, function);
         *exception = [runtime JSValueForObject:e inContext:ctx];
         return NULL;
     }
 }
 
 static JSValueRef MOJSPrototypeFunctionForOBJCInstance(JSContextRef ctx, id instance, NSString *name) {
+
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     char *propName = nil;
     if ([instance isKindOfClass:[NSString class]]) {
         propName = "String";
@@ -1405,18 +1495,27 @@ static JSValueRef MOJSPrototypeFunctionForOBJCInstance(JSContextRef ctx, id inst
 
 
 SEL MOSelectorFromPropertyName(NSString *propertyName) {
+    if (logging)
+        NSLog(@"%s %@", __FUNCTION__, propertyName);
+
     NSString *selectorString = [propertyName stringByReplacingOccurrencesOfString:@"_" withString:@":"];
     SEL selector = NSSelectorFromString(selectorString);
     return selector;
 }
 
 NSString * MOSelectorToPropertyName(SEL selector) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     NSString *selectorString = NSStringFromSelector(selector);
     NSString *propertyString = [selectorString stringByReplacingOccurrencesOfString:@":" withString:@"_"];
     return propertyString;
 }
 
 NSString * MOPropertyNameToSetterName(NSString *propertyName) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     if ([propertyName length] > 0) {
         // Capitalize first character and append "set" and "_"
         // title -> setTitle_

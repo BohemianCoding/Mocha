@@ -9,6 +9,7 @@
 #import "MOStruct.h"
 #import "MORuntime.h"
 
+extern BOOL logging;
 
 @implementation MOStruct {
     NSArray *_memberNames;
@@ -16,6 +17,8 @@
 }
 
 - (id)initWithName:(NSString *)name memberNames:(NSArray *)memberNames {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     self = [super init];
     if (self) {
         _name = [name copy];
@@ -30,6 +33,8 @@
 }
 
 - (NSString *)descriptionWithIndent:(NSUInteger)indent {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     NSMutableString *indentString = [NSMutableString string];
     for (NSUInteger i=0; i<indent; i++) {
         [indentString appendString:@"    "];
@@ -68,6 +73,8 @@
 }
 
 - (id)objectForMemberName:(NSString *)name {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     if (![_memberNames containsObject:name]) {
         @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name] userInfo:nil];
     }
@@ -75,6 +82,8 @@
 }
 
 - (void)setObject:(id)obj forMemberName:(NSString *)name {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     if (![_memberNames containsObject:name]) {
         @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name] userInfo:nil];
     }
@@ -82,10 +91,14 @@
 }
 
 - (id)objectForKeyedSubscript:(NSString *)key {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     return [self objectForMemberName:key];
 }
 
 - (void)setObject:(id)obj forKeyedSubscript:(NSString *)key {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     [self setObject:obj forMemberName:key];
 }
 

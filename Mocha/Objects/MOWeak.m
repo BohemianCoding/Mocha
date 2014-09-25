@@ -8,12 +8,15 @@
 
 #import "MOWeak.h"
 
+extern BOOL logging;
 
 @implementation MOWeak {
     __weak id _value;
 }
 
 + (id)constructWithArguments:(NSArray *)arguments {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     if ([arguments count] == 0) {
         @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Weak references require one argument" userInfo:nil];
     }
@@ -21,6 +24,8 @@
 }
 
 - (id)initWithValue:(id)value {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     self = [super init];
     if (self) {
         _value = value;
@@ -29,6 +34,8 @@
 }
 
 - (id)callWithArguments:(NSArray *)arguments {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     return _value;
 }
 

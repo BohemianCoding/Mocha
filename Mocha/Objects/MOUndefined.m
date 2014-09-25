@@ -8,6 +8,7 @@
 
 #import "MOUndefined.h"
 
+extern BOOL logging;
 
 @implementation MOUndefined
 
@@ -18,14 +19,20 @@ static MOUndefined *__sharedInstance = nil;
     dispatch_once(&onceToken, ^{
         __sharedInstance = [[self alloc] init];
     });
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     return __sharedInstance;
 }
 
 - (BOOL)isEqual:(id)object {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     return [object isKindOfClass:[MOUndefined class]];
 }
 
 - (NSUInteger)hash {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     return [__sharedInstance hash];
 }
 

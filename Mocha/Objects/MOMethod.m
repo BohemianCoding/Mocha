@@ -21,10 +21,14 @@
 
 @end
 
+extern BOOL logging;
 
 @implementation MOMethod
 
 + (MOMethod *)methodWithTarget:(id)target selector:(SEL)selector {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MOMethod *method = [[self alloc] init];
     method.target = target;
     method.selector = selector;
@@ -70,6 +74,9 @@
 }
 
 - (NSString *)description {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     return [NSString stringWithFormat:@"<%@: %p : target=%@, selector=%@>", [self class], self, [self target], NSStringFromSelector([self selector])];
 }
 

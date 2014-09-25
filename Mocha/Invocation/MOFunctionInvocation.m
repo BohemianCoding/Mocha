@@ -37,10 +37,15 @@ void * MOGetObjCCallAddressForArguments(NSArray *arguments);
 const char * MOBlockGetTypeEncoding(id blockObj);
 void * MOBlockGetCallAddress(id blockObj, const char ** typeEncoding);
 
+extern BOOL logging; // TEMP
 
 JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
-    
+
+        static long invocations = 0;
+    if (logging)
+       NSLog(@"invocation %ld", invocations++);
+
     // Determine the metadata for the function call
     JSValueRef value = NULL;
     BOOL objCCall = NO;
@@ -433,6 +438,9 @@ JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount,
 }
 
 JSValueRef MOSelectorInvoke(id target, SEL selector, JSContextRef ctx, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
     NSMethodSignature *methodSignature = [target methodSignatureForSelector:selector];
@@ -627,6 +635,9 @@ JSValueRef MOSelectorInvoke(id target, SEL selector, JSContextRef ctx, size_t ar
 #endif
 
 void * MOGetObjCCallAddressForArguments(NSArray *arguments) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     BOOL usingStret = NO;
     
     size_t resultSize = 0;
@@ -706,6 +717,9 @@ struct Block_literal {
 };
 
 const char * MOBlockGetTypeEncoding(id blockObj) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     if ([blockObj isKindOfClass:[MOBlock class]]) {
         return [[(MOBlock *)blockObj typeEncoding] UTF8String];
     }
@@ -728,6 +742,9 @@ const char * MOBlockGetTypeEncoding(id blockObj) {
 }
 
 void * MOBlockGetCallAddress(id blockObj, const char ** typeEncoding) {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
+
     struct Block_literal *block = (__bridge struct Block_literal *)blockObj;
     if (typeEncoding != nil) {
         *typeEncoding = MOBlockGetTypeEncoding(blockObj);

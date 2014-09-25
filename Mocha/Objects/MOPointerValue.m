@@ -16,10 +16,13 @@
 
 @end
 
+extern BOOL logging;
 
 @implementation MOPointerValue
 
 - (id)initWithPointerValue:(void *)pointerValue typeEncoding:(NSString *)typeEncoding {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     self = [super init];
     if (self) {
         self.pointerValue = pointerValue;
@@ -29,6 +32,8 @@
 }
 
 - (NSString *)description {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
     if ([self.typeEncoding length] > 0) {
         return [NSString stringWithFormat:@"<%p type=%@>", self.pointerValue, self.typeEncoding];
     }
