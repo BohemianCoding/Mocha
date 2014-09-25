@@ -8,10 +8,12 @@
 
 #import "MOBox.h"
 
+extern BOOL logging;
 
 @implementation MOBox
 
 - (void)dealloc {
-    NSLog(@"I'm off");
+    if (logging)
+        NSLog(@"I'm off");
 }
 @end
