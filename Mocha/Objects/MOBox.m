@@ -14,6 +14,6 @@ extern BOOL logging;
 
 - (void)dealloc {
     if (logging)
-        NSLog(@"I'm off");
+        NSLog(@"%s obj: %@ js:%p", __FUNCTION__, self.representedObject, self.JSObject);
 }
 @end
