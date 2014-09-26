@@ -156,10 +156,10 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
     self = [super init];
     if (self) {
         self.options = options;
-        
+
         _ctx = JSGlobalContextCreate(MochaClass);
         _objectsToBoxes = [NSMapTable weakToStrongObjectsMapTable];
-        
+
 #if !TARGET_OS_IPHONE
         NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask, YES);
         NSMutableArray *frameworkSearchPaths = [NSMutableArray arrayWithCapacity:[libraryPaths count]];
@@ -196,7 +196,7 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
     static long valForObj = 0;
     if (++valForObj == 23457) {
-        logging = YES;
+        //        logging = YES;
     }
     if (logging)
         NSLog(@"%s %ld", __FUNCTION__, valForObj);
@@ -490,7 +490,7 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
     }
     
     if (JSValueGetType(ctx, exception) != kJSTypeObject) {
-        NSException *mochaException = [NSException exceptionWithName:MOJavaScriptException reason:error userInfo:nil];
+        NSException *mochaException = MOThrowableExceptionNamed(MOJavaScriptException, error);
         return mochaException;
     }
     else {
@@ -515,7 +515,7 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
         
         JSPropertyNameArrayRelease(jsNames);
         
-        NSException *mochaException = [NSException exceptionWithName:MOJavaScriptException reason:error userInfo:userInfo];
+        NSException *mochaException = MOThrowableExceptionNamed(MOJavaScriptException, error);
         return mochaException;
     }
 }
@@ -669,19 +669,32 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 #pragma mark Global Object
 
 void MORaiseRuntimeException(JSValueRef *exception, NSString* reason, MORuntime* runtime, JSContextRef ctx) {
-    NSLog(@"raising exception for reason %@", reason);
-    NSException *e = [NSException exceptionWithName:MORuntimeException reason:reason userInfo:nil];
+    MORaiseRuntimeExceptionNamed(MORuntimeException, exception, reason, runtime, ctx);
+}
+
+void MORaiseRuntimeExceptionNamed(NSString* name, JSValueRef *exception, NSString* reason, MORuntime* runtime, JSContextRef ctx) {
+    NSLog(@"raising exception %@ for reason %@", name, reason);
+    NSException *e = MOThrowableExceptionNamed(name, reason);
     if (exception != NULL) {
         *exception = [runtime JSValueForObject:e inContext:ctx];
     }
-
 }
+
+NSException* MOThrowableRuntimeException(NSString* reason) {
+    return MOThrowableExceptionNamed(MORuntimeException, reason);
+}
+
+NSException* MOThrowableExceptionNamed(NSString* name, NSString* reason) {
+    NSLog(@"throwing exception for reason %@", reason);
+    return [NSException exceptionWithName:name reason:reason userInfo:nil];
+}
+
 extern void JSSynchronousGarbageCollectForDebugging(JSContextRef);
 static int gcCounter = 0;
 
 static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
 
-    if ((++gcCounter % 100000) == 0)
+    if ((++gcCounter % 30000) == 0)
         JSSynchronousGarbageCollectForDebugging(ctx);
 
     NSString *propertyName = CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
@@ -1440,9 +1453,7 @@ static JSValueRef MOObject_callAsFunction(JSContextRef ctx, JSObjectRef function
         return MOFunctionInvoke(function, ctx, argumentCount, arguments, exception);
     }
     else {
-        NSException *e = [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object cannot be called as a function" userInfo:nil];
-        NSLog(@"exception %@ for %@", e, function);
-        *exception = [runtime JSValueForObject:e inContext:ctx];
+        MORaiseRuntimeExceptionNamed(NSInvalidArgumentException, exception, @"Object cannot be called as a function", runtime, ctx);
         return NULL;
     }
 }

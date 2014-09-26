@@ -195,7 +195,7 @@ extern BOOL logging;
     }
     else {
         if (![MOFunctionArgument getSize:NULL ofTypeEncoding:_baseTypeEncoding]) {
-            @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Invalid type encoding: %c", _baseTypeEncoding] userInfo:nil];
+            @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Invalid type encoding: %c", _baseTypeEncoding]);
         };
         
         _structureType.size = 0;
@@ -254,7 +254,7 @@ extern BOOL logging;
 - (void)allocateStorage {
     if (logging) NSLog(@"%s", __FUNCTION__);
     if (!_typeEncoding) {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"No type encoding set in %@", self] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"No type encoding set in %@", self]);
     }
     
     BOOL success = NO;
@@ -285,7 +285,7 @@ extern BOOL logging;
         _storage = malloc(size);
     }
     else {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Unable to allocate storage for argument type %c", _baseTypeEncoding] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to allocate storage for argument type %c", _baseTypeEncoding]);
     }
 }
 
@@ -304,7 +304,7 @@ extern BOOL logging;
         *ptr = (void *)address;
     }
     else {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Unable to align pointer for argument type %c", encoding] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to align pointer for argument type %c", encoding]);
     }
 }
 
@@ -319,7 +319,7 @@ extern BOOL logging;
         *ptr = (void*)address;
     }
     else {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Unable to advance pointer for argument type %c", encoding] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to advance pointer for argument type %c", encoding]);
     }
 }
 
@@ -347,12 +347,12 @@ extern BOOL logging;
             encoding = [_typeEncoding substringFromIndex:1];
         }
         else {
-            @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Unable to dereference non-pointer value: %@", self] userInfo:nil];
+            @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to dereference non-pointer value: %@", self]);
         }
     }
     
     if (![MOFunctionArgument toJSValue:&value inContext:ctx typeEncoding:typeEncoding fullTypeEncoding:encoding storage:p]) {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Getting value as JSValue failed: %@", self] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Getting value as JSValue failed: %@", self]);
     }
     
     return value;
@@ -378,12 +378,12 @@ extern BOOL logging;
                 encoding = [_typeEncoding substringFromIndex:1];
             }
             else {
-                @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Unable to dereference non-pointer value: %@", self] userInfo:nil];
+                @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to dereference non-pointer value: %@", self]);
             }
         }
         
         if (![MOFunctionArgument fromJSValue:value inContext:ctx typeEncoding:typeEncoding fullTypeEncoding:encoding storage:p]) {
-            @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Setting value from JSValue failed: %@, %@", self, MOJSValueToString(ctx, value, NULL)] userInfo:nil];
+            @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Setting value from JSValue failed: %@, %@", self, MOJSValueToString(ctx, value, NULL)]);
         }
     }
     else {
@@ -594,7 +594,7 @@ typedef struct { char a; BOOL b; } struct_C_BOOL;
     id symbol = [[MOBridgeSupportController sharedController] symbolWithName:structureName type:[MOBridgeSupportStruct class]];
     
     if (symbol == nil) {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"No structure encoding found for %@", structureName] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"No structure encoding found for %@", structureName]);
         return nil;
     }
     

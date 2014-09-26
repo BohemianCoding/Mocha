@@ -8,6 +8,7 @@
 
 #import "MOStruct.h"
 #import "MORuntime.h"
+#import "MORuntime_Private.h"
 
 extern BOOL logging;
 
@@ -76,7 +77,7 @@ extern BOOL logging;
     if (logging)
         NSLog(@"%s", __FUNCTION__);
     if (![_memberNames containsObject:name]) {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name]);
     }
     return [_memberValues objectForKey:name];
 }
@@ -85,7 +86,7 @@ extern BOOL logging;
     if (logging)
         NSLog(@"%s", __FUNCTION__);
     if (![_memberNames containsObject:name]) {
-        @throw [NSException exceptionWithName:MORuntimeException reason:[NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name] userInfo:nil];
+        @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Struct %@ has no member named %@", self.name, name]);
     }
     [_memberValues setObject:obj forKey:name];
 }
