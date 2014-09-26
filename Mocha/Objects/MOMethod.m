@@ -39,7 +39,7 @@ extern BOOL logging;
     while (searchClass != Nil) {
         MOBridgeSupportClass *aClass = [[MOBridgeSupportController sharedController] symbolWithName:NSStringFromClass(searchClass) type:[MOBridgeSupportClass class]];
         MOBridgeSupportMethod *bridgeMethod = [aClass methodWithSelector:selector];
-        if (method != nil) {
+        if (bridgeMethod != nil) {
             matchFound = YES;
             method.returnsRetained = [[bridgeMethod returnValue] isAlreadyRetained];
             method.variadic = [bridgeMethod isVariadic];
@@ -71,6 +71,11 @@ extern BOOL logging;
     }
     
     return method;
+}
+
+- (void)dealloc {
+    if (logging)
+        NSLog(@"%s", __FUNCTION__);
 }
 
 - (NSString *)description {

@@ -68,6 +68,11 @@ SEL MOSelectorFromPropertyName(NSString *propertyName);
 NSString * MOSelectorToPropertyName(SEL selector);
 NSString * MOPropertyNameToSetterName(NSString *propertyName);
 
+static id MOObjectFromJSObject(JSObjectRef objectJS) {
+    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
+    id object = [private representedObject];
+    return object;
+}
 
 @interface MORuntimeProxy : NSObject
 
@@ -195,8 +200,8 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
 
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
     static long valForObj = 0;
-    if (++valForObj == 23457) {
-        //        logging = YES;
+    if (++valForObj == 9949) {
+        logging = YES;
     }
     if (logging)
         NSLog(@"%s %ld", __FUNCTION__, valForObj);
@@ -238,7 +243,7 @@ NSString * MOPropertyNameToSetterName(NSString *propertyName);
             value = jsObject;
 
             if (logging)
-                NSLog(@"made box %@ representing %p (%@) jsobj %p", box, object, [object class], jsObject);
+                NSLog(@"made box %@ representing %@ jsobj %p", box, object, jsObject);
 
         }
     }
@@ -694,8 +699,8 @@ static int gcCounter = 0;
 
 static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
 
-    if ((++gcCounter % 30000) == 0)
-        JSSynchronousGarbageCollectForDebugging(ctx);
+//    if ((++gcCounter % 10000000) == 0)
+//        JSSynchronousGarbageCollectForDebugging(ctx);
 
     NSString *propertyName = CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
 
@@ -918,18 +923,24 @@ static void MOObject_initialize(JSContextRef ctx, JSObjectRef object) {
 
 }
 
-static void MOObject_finalize(JSObjectRef object) {
-    if (logging)
-        NSLog(@"%s", __FUNCTION__);
+int finalizingObject = 0;
 
-    MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(object));
-    id o = [private representedObject];
-    
-    // Remove the object association
-    MORuntime *runtime = [private runtime];
-    [runtime removeBoxAssociationForObject:o];
-    
-    JSObjectSetPrivate(object, NULL);
+static void MOObject_finalize(JSObjectRef object) {
+    ++finalizingObject;
+    {
+        assert([NSThread isMainThread]);
+        if (logging)
+            NSLog(@"%s", __FUNCTION__);
+
+        MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(object));
+        JSObjectSetPrivate(object, NULL);
+        id o = [private representedObject];
+        
+        // Remove the object association
+        MORuntime *runtime = [private runtime];
+        [runtime removeBoxAssociationForObject:o];
+    }
+    --finalizingObject;
 }
 
 static bool MOObject_hasProperty(JSContextRef ctx, JSObjectRef objectJS, JSStringRef propertyNameJS) {
@@ -941,8 +952,7 @@ static bool MOObject_hasProperty(JSContextRef ctx, JSObjectRef objectJS, JSStrin
     if (logging)
         NSLog(@"has property %@ %ld", propertyName, objHasProperty++);
 
-    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
-    id object = [private representedObject];
+    id object = MOObjectFromJSObject(objectJS);
     Class objectClass = [object class];
     
     // String conversion
@@ -1038,9 +1048,10 @@ static JSValueRef MOObject_getProperty(JSContextRef ctx, JSObjectRef objectJS, J
         NSLog(@"get property %@", propertyName);
 
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
-    
-    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
-    id object = [private representedObject];
+
+//    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
+//    id object = [private representedObject];
+    id object = MOObjectFromJSObject(objectJS);
     Class objectClass = [object class];
     
     // Perform the lookup
@@ -1177,8 +1188,7 @@ static bool MOObject_setProperty(JSContextRef ctx, JSObjectRef objectJS, JSStrin
     
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
-    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
-    id object = [private representedObject];
+    id object = MOObjectFromJSObject(objectJS);
     Class objectClass = [object class];
     id value = [runtime objectForJSValue:valueJS inContext:ctx];
     
@@ -1240,8 +1250,7 @@ static bool MOObject_deleteProperty(JSContextRef ctx, JSObjectRef objectJS, JSSt
     
     MORuntime *runtime = [MORuntime runtimeWithContext:ctx];
     
-    id private = (__bridge id)(JSObjectGetPrivate(objectJS));
-    id object = [private representedObject];
+    id object = MOObjectFromJSObject(objectJS);
     
     // Perform the lookup
     @try {
@@ -1277,10 +1286,7 @@ static void MOObject_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPr
     if (logging)
         NSLog(@"%s", __FUNCTION__);
 
-    MOBox *privateObject = (__bridge MOBox *)(JSObjectGetPrivate(object));
-    
-    // If we have a dictionary, add keys from allKeys
-    id o = [privateObject representedObject];
+    id o = MOObjectFromJSObject(object);
     
     if ([o isKindOfClass:[NSDictionary class]]) {
         NSDictionary *dictionary = o;
