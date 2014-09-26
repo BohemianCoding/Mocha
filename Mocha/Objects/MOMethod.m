@@ -74,9 +74,6 @@ extern BOOL logging;
 }
 
 - (NSString *)description {
-    if (logging)
-        NSLog(@"%s", __FUNCTION__);
-
     return [NSString stringWithFormat:@"<%@: %p : target=%@, selector=%@>", [self class], self, [self target], NSStringFromSelector([self selector])];
 }
 
