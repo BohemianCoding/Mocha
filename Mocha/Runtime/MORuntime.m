@@ -1453,7 +1453,7 @@ static JSValueRef MOObject_callAsFunction(JSContextRef ctx, JSObjectRef function
         return MOFunctionInvoke(function, ctx, argumentCount, arguments, exception);
     }
     else {
-        MORaiseRuntimeExceptionNamed(NSInvalidArgumentException, exception, @"Object cannot be called as a function", runtime, ctx);
+        MORaiseRuntimeExceptionNamed(NSInvalidArgumentException, exception, [NSString stringWithFormat:@"Object %@ cannot be called as a function", function], runtime, ctx);
         return NULL;
     }
 }
