@@ -91,12 +91,12 @@ extern BOOL logging;
 - (void)dealloc {
     if (logging) NSLog(@"%s", __FUNCTION__);
     if (_storage != NULL && _ownsStorage) {
-        free(_storage);
+        MOFree(_storage);
     }
     _storage = NULL;
     
     if (_structureType.elements != NULL) {
-        free(_structureType.elements);
+        MOFree(_structureType.elements);
         _structureType.elements = NULL;
     }
     
@@ -128,7 +128,7 @@ extern BOOL logging;
 - (void)setTypeEncoding:(NSString *)typeEncoding storage:(void **)storagePtr {
     if (logging) NSLog(@"%s", __FUNCTION__);
     if (_ownsStorage && _storage != NULL) {
-        free(_storage);
+        MOFree(_storage);
     }
     _storage = NULL;
     _ownsStorage = NO;
@@ -182,9 +182,9 @@ extern BOOL logging;
         _structureType.alignment = 0;
         _structureType.type = FFI_TYPE_STRUCT;
         if (_structureType.elements != nil) {
-            free(_structureType.elements);
+            MOFree(_structureType.elements);
         }
-        _structureType.elements = malloc(sizeof(ffi_type *) * (elementCount + 1)); // +1 is trailing NULL
+        _structureType.elements = MOMalloc(sizeof(ffi_type *) * (elementCount + 1)); // +1 is trailing NULL
         
         NSUInteger i = 0;
         for (NSString *type in types) {
@@ -202,7 +202,7 @@ extern BOOL logging;
         _structureType.alignment = 0;
         _structureType.type = 0;
         if (_structureType.elements != NULL) {
-            free(_structureType.elements);
+            MOFree(_structureType.elements);
         }
         _structureType.elements = NULL;
     }
@@ -282,7 +282,7 @@ extern BOOL logging;
             size = minimalReturnSize;
         }
         _ownsStorage = YES;
-        _storage = malloc(size);
+        _storage = MOMalloc(size);
     }
     else {
         @throw MOThrowableRuntimeException([NSString stringWithFormat:@"Unable to allocate storage for argument type %c", _baseTypeEncoding]);

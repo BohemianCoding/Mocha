@@ -9,6 +9,8 @@
 #import <Mocha/MORuntime.h>
 #import <JavaScriptCore/JavaScriptCore.h>
 
+#define MOMalloc(x) (void*)((char*)malloc((x)+64) + 32)
+#define MOFree(x) free((void*)(((char*)x) - 32))
 
 @interface MORuntime ()
 

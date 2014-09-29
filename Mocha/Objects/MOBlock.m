@@ -86,7 +86,7 @@ SEL __proxySelector = NULL;
     NSArray *functionArguments = [MOFunctionArgument argumentsFromTypeSignature:_typeEncoding];
     NSUInteger argumentCount = [functionArguments count] - 2; // return value + block object
     
-    JSValueRef *jsArguments = (JSValueRef *)malloc(sizeof(JSValueRef) * argumentCount);
+    JSValueRef *jsArguments = (JSValueRef *)MOMalloc(sizeof(JSValueRef) * argumentCount);
     
     // Convert the NSInvocation's arguments into JSValues
     for (NSUInteger i=2; i<[functionArguments count]; i++) {
@@ -111,7 +111,7 @@ SEL __proxySelector = NULL;
         [anInvocation setReturnValue:returnStorage];
     }
     
-    free(jsArguments);
+    MOFree(jsArguments);
         
     if (exception != NULL) {
         [runtime throwJSException:exception inContext:ctx];

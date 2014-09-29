@@ -195,7 +195,7 @@ extern BOOL logging;
     
     JSValueRef * argumentRefs = NULL;
     if (argumentCount > 0) {
-        argumentRefs = malloc(sizeof(JSValueRef));
+        argumentRefs = MOMalloc(sizeof(JSValueRef));
     }
     
     for (size_t i=0; i<argumentCount; i++) {
@@ -208,7 +208,7 @@ extern BOOL logging;
     JSValueRef returnValue = JSObjectCallAsConstructor(_JSContext, _JSObject, argumentCount, (const JSValueRef *)argumentRefs, &exceptionRef);
     
     if (argumentRefs != NULL) {
-        free(argumentRefs);
+        MOFree(argumentRefs);
     }
     
     if (exceptionRef != NULL) {
@@ -227,7 +227,7 @@ extern BOOL logging;
     
     JSValueRef * argumentRefs = NULL;
     if (argumentCount > 0) {
-        argumentRefs = malloc(sizeof(JSValueRef));
+        argumentRefs = MOMalloc(sizeof(JSValueRef));
     }
     
     for (size_t i=0; i<argumentCount; i++) {
@@ -240,7 +240,7 @@ extern BOOL logging;
     JSValueRef returnValue = JSObjectCallAsFunction(_JSContext, _JSObject, NULL, argumentCount, (const JSValueRef *)argumentRefs, &exceptionRef);
     
     if (argumentRefs != NULL) {
-        free(argumentRefs);
+        MOFree(argumentRefs);
     }
     
     if (exceptionRef != NULL) {

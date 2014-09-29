@@ -263,8 +263,8 @@ JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount,
     }
     
     if (effectiveArgumentCount > 0) {
-        args = malloc(sizeof(ffi_type *) * effectiveArgumentCount);
-        values = malloc(sizeof(void *) * effectiveArgumentCount);
+        args = MOMalloc(sizeof(ffi_type *) * effectiveArgumentCount);
+        values = MOMalloc(sizeof(void *) * effectiveArgumentCount);
         
         NSUInteger j = 0;
         
@@ -343,8 +343,8 @@ JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount,
         }
         @catch (NSException *e) {
             if (effectiveArgumentCount > 0) {
-                free(args);
-                free(values);
+                MOFree(args);
+                MOFree(values);
             }
             if (exception != NULL) {
                 *exception = [runtime JSValueForObject:e inContext:ctx];
@@ -355,8 +355,8 @@ JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount,
     
     // Free the arguments
     if (effectiveArgumentCount > 0) {
-        free(args);
-        free(values);
+        MOFree(args);
+        MOFree(values);
     }
     
     // Throw an exception if the prep call failed
