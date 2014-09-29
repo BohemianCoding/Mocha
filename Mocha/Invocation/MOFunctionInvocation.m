@@ -68,6 +68,8 @@ JSValueRef MOFunctionInvoke(id function, JSContextRef ctx, size_t argumentCount,
         target = [function target];
         selector = [function selector];
         Class klass = [target class];
+
+        NSLog(@"calling %@ with %@", target, NSStringFromSelector(selector));
         
 #if !TARGET_OS_IPHONE
         // Override for Distributed Objects
