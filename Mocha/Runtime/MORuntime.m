@@ -198,6 +198,8 @@ static id MOObjectFromJSObject(JSObjectRef objectJS) {
 #pragma mark -
 #pragma mark Object Conversion
 
+#pragma mark - SAM Counter
+
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
     static long valForObj = 0;
     if (++valForObj == 9949) {
@@ -699,7 +701,9 @@ static int gcCounter = 0;
 
 static bool Mocha_hasProperty(JSContextRef ctx, JSObjectRef object, JSStringRef propertyNameJS) {
 
-//    if ((++gcCounter % 10000000) == 0)
+#pragma mark - SAM Garbage Collection
+    
+//   if ((++gcCounter % 1000) == 0)
 //        JSSynchronousGarbageCollectForDebugging(ctx);
 
     NSString *propertyName = CFBridgingRelease(JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS));
