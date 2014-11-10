@@ -202,7 +202,7 @@ static id MOObjectFromJSObject(JSObjectRef objectJS) {
 
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
     static long valForObj = 0;
-    if (++valForObj == 9949) {
+    if (++valForObj == 6710) {
         logging = YES;
     }
     if (logging)
@@ -239,7 +239,7 @@ static id MOObjectFromJSObject(JSObjectRef objectJS) {
             JSObjectRef jsObject = JSObjectMake(ctx, MOObjectClass, (__bridge void *)(box));
             
             box.JSObject = jsObject;
-            
+
             [_objectsToBoxes setObject:box forKey:object];
             
             value = jsObject;
@@ -937,9 +937,12 @@ static void MOObject_finalize(JSObjectRef object) {
             NSLog(@"%s", __FUNCTION__);
 
         MOBox *private = (__bridge MOBox *)(JSObjectGetPrivate(object));
+        assert([private isKindOfClass:[MOBox class]]);
         JSObjectSetPrivate(object, NULL);
         id o = [private representedObject];
-        
+        if (o == [NSString class])
+            NSLog(@"blah");
+
         // Remove the object association
         MORuntime *runtime = [private runtime];
         [runtime removeBoxAssociationForObject:o];
@@ -1305,14 +1308,14 @@ static void MOObject_getPropertyNames(JSContextRef ctx, JSObjectRef object, JSPr
 }
 
 static JSValueRef MOObject_convertToType(JSContextRef ctx, JSObjectRef objectJS, JSType type, JSValueRef *exception) {
-    if (logging)
-        NSLog(@"%s", __FUNCTION__);
 
     MOBox *box = (__bridge MOBox *)(JSObjectGetPrivate(objectJS));
     if (box != nil) {
         // Boxed object
         id object = [box representedObject];
-        
+        if (logging)
+            NSLog(@"%s %@ to %@", __FUNCTION__, object, type == kJSTypeString ? @"string" : @"number");
+
         if (type == kJSTypeString) {
             if ([object isKindOfClass:[NSString class]]) {
                 JSStringRef string = JSStringCreateWithCFString((__bridge CFStringRef)object);

@@ -133,6 +133,9 @@
     return self;
 }
 
+- (void)dealloc {
+    NSLog(@"class going");
+}
 
 #pragma mark -
 #pragma mark Methods
