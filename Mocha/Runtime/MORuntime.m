@@ -202,7 +202,7 @@ static id MOObjectFromJSObject(JSObjectRef objectJS) {
 
 - (JSValueRef)JSValueForObject:(id)object inContext:(JSContextRef)ctx {
     static long valForObj = 0;
-    if (++valForObj == 6710) {
+    if (++valForObj == 200000) {
         logging = YES;
     }
     if (logging)
@@ -941,7 +941,7 @@ static void MOObject_finalize(JSObjectRef object) {
         JSObjectSetPrivate(object, NULL);
         id o = [private representedObject];
         if (o == [NSString class])
-            NSLog(@"blah");
+            NSLog(@"about to finalize NSString");
 
         // Remove the object association
         MORuntime *runtime = [private runtime];
